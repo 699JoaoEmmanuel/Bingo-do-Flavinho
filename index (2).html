@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bingo do Flávio</title>
+<style>
+:root{
+  box-sizing:border-box;
+  --bg:#fbf7ee; --card:#ffffff; --ink:#1d1b2e; --muted:#6b6880; --line:#e4dccb;
+  --accent:#1f7a4d; --mark:#e0b400; --link:#1a4fb4;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#15141f;--card:#1f1e2c;--ink:#f3efe3;--muted:#a19eb5;--line:#34324a;--accent:#4fd18b;--mark:#f2c94c;--link:#8fb4ff}
+}
+:root[data-theme="dark"]{--bg:#15141f;--card:#1f1e2c;--ink:#f3efe3;--muted:#a19eb5;--line:#34324a;--accent:#4fd18b;--mark:#f2c94c;--link:#8fb4ff}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;line-height:1.5}
+main{max-width:720px;margin:0 auto;padding:28px 16px 56px}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.2rem,8vw,3.6rem);line-height:1.05;margin:0 0 8px;letter-spacing:-.02em}
+.sub{color:var(--muted);margin:0 0 20px;max-width:56ch}
+.placar{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.placar strong{font-family:Georgia,serif;font-size:1.6rem}
+.barra{flex:1;height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.barra i{display:block;height:100%;background:var(--accent);width:0;transition:width .4s}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+li{background:var(--card);border:2px solid var(--line);border-radius:10px;padding:14px 16px}
+li.feito{border-color:var(--accent)}
+label{display:flex;gap:12px;align-items:flex-start;font-weight:600;font-size:1.05rem}
+input[type=checkbox]{appearance:none;flex:none;width:26px;height:26px;margin:0;border:2px solid var(--ink);border-radius:6px;background:var(--card);display:grid;place-content:center;pointer-events:none}
+input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+input[type=checkbox]:checked::after{content:"✓";color:#fff;font-size:18px;font-weight:700;line-height:1}
+.fontes{margin:10px 0 0 38px;font-size:.92rem}
+.fontes:empty{display:none}
+.vazio{color:var(--muted);font-style:italic}
+.fontes a{display:block;color:var(--link);word-break:break-word;padding:2px 0}
+footer{margin-top:28px;color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+  <h1>Bingo do Flávio</h1>
+  <p class="sub">Afirmações sobre o que pode acontecer durante o governo do Flávio. Quando um item se confirmar, ele é marcado e a reportagem que comprova aparece logo abaixo.</p>
+  <div class="placar"><strong id="conta">0/0</strong><div class="barra"><i id="prog"></i></div></div>
+  <ul id="lista"></ul>
+  <footer>Marcações e fontes são atualizadas apenas pelo autor do site.</footer>
+</main>
+
+<script>
+/* ===== COMO EDITAR =====
+   Quando um item acontecer: troque feito:false por feito:true
+   e cole a(s) reportagem(ns) em links, no formato:
+   {titulo:"Título da matéria", url:"https://..."}
+   Para adicionar mais uma afirmação, copie uma linha e altere o texto. */
+const ITENS = [
+  {texto:"Bolsonaro inocentado", feito:false, links:[]},
+  {texto:"Investigação do caso Master arquivada", feito:false, links:[]},
+  {texto:"Os vouchers da escola vão dar errado", feito:false, links:[]},
+  {texto:"Alimentos da cesta básica vão ficar mais caros", feito:false, links:[]},
+  {texto:"Terras raras serão vendidas", feito:false, links:[]},
+  {texto:"Desmatamento na Amazônia vai aumentar", feito:false, links:[]},
+  {texto:"Diluição de ministérios", feito:false, links:[]},
+  {texto:"Brasil volta ao mapa da fome", feito:false, links:[]},
+  {texto:"Pix será dificultado ou ficará fora de circulação", feito:false, links:[]},
+  {texto:"\"Flexibilização\" nos empregos vai tirar direitos do trabalhador", feito:false, links:[]},
+  {texto:"Violência policial, feminicídios e ataques raciais não vão diminuir (e o feminicídio passará a ser chamado de assassinato, mascarando os dados)", feito:false, links:[]},
+  {texto:"\"Alinhamento\" com os EUA vai fazer o Brasil sair do BRICS", feito:false, links:[]},
+  {texto:"Programas como Minha Casa Minha Vida, Pé-de-Meia e qualquer tipo de auxílio serão retirados", feito:false, links:[]},
+  {texto:"Salário sem aumento real (acima da inflação)", feito:false, links:[]},
+  {texto:"Intolerância religiosa vai subir", feito:false, links:[]},
+  {texto:"Crime organizado e milícias não serão contidos", feito:false, links:[]},
+  {texto:"Aposentadorias congeladas", feito:false, links:[]}
+];
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const lista = document.getElementById('lista');
+lista.innerHTML = ITENS.map((it,i) => {
+  const fontes = it.links.length
+    ? it.links.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.titulo || l.url)}</a>`).join('')
+    : `<span class="vazio">Nenhuma fonte ainda.</span>`;
+  return `<li class="${it.feito?'feito':''}"><label><input type="checkbox" ${it.feito?'checked':''} disabled aria-label="Confirmado"><span>${esc(it.texto)}</span></label><div class="fontes">${fontes}</div></li>`;
+}).join('');
+const n = ITENS.filter(i => i.feito).length;
+document.getElementById('conta').textContent = n + '/' + ITENS.length;
+document.getElementById('prog').style.width = (n / ITENS.length * 100) + '%';
+</script>
+</body>
+</html>
